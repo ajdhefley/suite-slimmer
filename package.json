@@ -1,5 +1,5 @@
 {
-  "name": "@ajdhefley/test-suite",
+  "name": "@ajdhefley/test-suite-core",
   "author": "Ashton Hefley",
   "version": "1.0.0",
   "main": "build/index.js",
