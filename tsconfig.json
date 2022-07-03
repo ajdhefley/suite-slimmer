@@ -2,8 +2,15 @@
     "compilerOptions": {
       "rootDir": "src",
       "outDir": "build",
+      "declaration": true,
+      "target": "es2017",
+      "module": "commonjs",
+      "moduleResolution": "node"
     },
     "include": [
       "./src/**/*.ts"
+    ],
+    "exclude": [
+        "node_modules"
     ]
 }
