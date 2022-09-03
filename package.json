@@ -1,6 +1,9 @@
 {
-  "name": "@ajdhefley/slim-suite-core",
+  "name": "slim-suite",
+  "description": "Eliminates boilerplate code for Angular and NestJS tests, making them a pleasure to read and write.",
   "author": "Ashton Hefley",
+  "repository": "github:https://github.com/ajdhefley/slim-suite",
+  "homepage": "https://github.com/ajdhefley/slim-suite#readme",
   "version": "1.0.0",
   "main": "build/index.js",
   "types": "build/index.d.ts",
@@ -9,10 +12,6 @@
     "build": "tsc"
   },
   "devDependencies": {
-    "@angular/core": "^13.0.2",
-    "@nestjs/common": "^8.2.0",
-    "@nestjs/core": "^8.2.0",
-    "@nestjs/testing": "^8.2.0",
     "@types/jest": "^27.0.2",
     "@types/node": "^16.11.7",
     "jest": "^27.3.1",
