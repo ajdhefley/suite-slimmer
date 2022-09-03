@@ -1,10 +1,10 @@
 {
   "name": "slim-suite",
-  "description": "Eliminates boilerplate code for Angular and NestJS tests, making them a pleasure to read and write.",
+  "description": "Core slim-suite library.",
   "author": "Ashton Hefley",
   "repository": "github:https://github.com/ajdhefley/slim-suite",
   "homepage": "https://github.com/ajdhefley/slim-suite#readme",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "main": "build/index.js",
   "types": "build/index.d.ts",
   "scripts": {
