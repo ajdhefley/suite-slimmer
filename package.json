@@ -2,10 +2,13 @@
   "name": "slim-suite",
   "description": "Core library for eliminating boilerplate code from tests.",
   "author": "Ashton Hefley",
-  "license" : "MIT license",
-  "repository": "github:https://github.com/ajdhefley/slim-suite",
+  "license": "MIT license",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ajdhefley/slim-suite"
+  },
   "homepage": "https://github.com/ajdhefley/slim-suite#readme",
-  "version": "1.0.5",
+  "version": "1.1.0",
   "main": "build/index.js",
   "types": "build/index.d.ts",
   "scripts": {
@@ -20,7 +23,7 @@
     "ts-node": "^10.4.0"
   },
   "dependencies": {
-    "rxjs": "^7.4.0",
-    "typescript": "^4.4.4"
+    "typescript": "^4.4.4",
+    "tslib": "^2.0.0"
   }
 }

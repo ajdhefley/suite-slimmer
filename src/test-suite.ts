@@ -1,9 +1,5 @@
 import { TestMockMapper } from './test-mock-mapper';
 
-export abstract class TestSuiteStrategy {
-    abstract initialize(mockMapper: TestMockMapper, declarations: any[], imports: any[], providers: any[], callback: Function);
-}
-
 export abstract class TestSuite<TClass> {
     private declarations = new Array<any>();
     private imports = new Array<any>();
@@ -11,15 +7,17 @@ export abstract class TestSuite<TClass> {
     private mockProviders = new Array<any>();
     private mockMapper = new TestMockMapper();
     private class: TClass;
+    private initializedTest: boolean;
+    private initializedTests: boolean;
     
     private callbacks = new Array<() => void>();
-    private initialized: boolean;
 
     private get providers() {
         return this.customProviders.concat(this.mockProviders);
     }
 
-    protected abstract initializeTest(mockMapper: TestMockMapper, declarations: any[], imports: any[], providers: any[], callback: Function);
+    protected abstract initializeTest(mockMapper: TestMockMapper, declarations: any[], imports: any[], providers: any[]): TClass;
+    protected abstract initializeTests(mockMapper: TestMockMapper, declarations: any[], imports: any[], providers: any[]): Promise<void>;
 
     constructor(protected name: string, protected excludeOthers: boolean) { }
 
@@ -66,50 +64,65 @@ export abstract class TestSuite<TClass> {
     }
 
     beforeEach(callback: (classInstance: TClass, mocks: TestMockMapper) => void): TestSuite<TClass> {
-        if (!this.initialized) {
-            this.initialized = true;
+        this.callbacks.push(() => {
+            beforeEach(() => {
+                if (this.initializedTest) {
+                    return callback(this.class, this.mockMapper);
+                }
 
-            this.callbacks.push(() => {
-                // Hijack the created class instance to inject into future callbacks.
-                let callbackWrapper = (classInstance: TClass, mocks: TestMockMapper) => {
-                    this.class = classInstance;
-                    if (callback)
-                        callback(classInstance, mocks);
-                };
+                this.class = this.initializeTest(this.mockMapper, this.declarations, this.imports, this.providers);
+                this.initializedTest = true;
 
-                beforeEach(async () => await this.initializeTest(this.mockMapper, this.declarations, this.imports, this.providers, callbackWrapper));
+                callback(this.class, this.mockMapper);
             });
-        }
+        });
 
         return this;
     }
 
     afterEach(callback: (classInstance: TClass, mocks: TestMockMapper) => void): TestSuite<TClass> {
+
+        return this;
+    }
+
+    beforeAll(callback: (classInstance: TClass, mocks: TestMockMapper) => void): TestSuite<TClass> {
         this.callbacks.push(() => {
-            afterEach(() => callback(this.class, this.mockMapper));
+            beforeAll(async () => {
+                if (this.initializedTests) {
+                    return callback(this.class, this.mockMapper);
+                }
+
+                await this.initializeTests(this.mockMapper, this.declarations, this.imports, this.providers);
+                this.initializedTests = true;
+
+                callback(this.class, this.mockMapper);
+            });
         });
 
         return this;
     }
 
-    initializeTests(mockMapper: TestMockMapper, declarations: any[], imports: any[], providers: any[], callback: Function) {
+    afterAll(callback: (classInstance: TClass, mocks: TestMockMapper) => void): TestSuite<TClass> {
+        this.callbacks.push(() => {
+            afterAll(() => callback(this.class, this.mockMapper));
+        });
 
+        return this;
     }
 
     run() {
-        this.initializeTests(this.mockMapper, this.declarations, this.imports, this.providers, () => {
-            this.beforeEach(() => {});
+        this.beforeAll(() => {});
+        this.beforeEach(() => {});
 
-            if (this.excludeOthers) {
-                fdescribe(this.name, () => {
-                    this.callbacks.forEach((callback) => callback());
-                });
-            }
-            else {
-                describe(this.name, () => {
-                    this.callbacks.forEach((callback) => callback());
-                });
-            }
-        });
+        if (this.excludeOthers) {
+            fdescribe(this.name, () => {
+                this.callbacks.forEach((callback) => callback());
+            });
+        }
+        else {
+            describe(this.name, () => {
+                this.callbacks.forEach((callback) => callback());
+            });
+        }
     }
 }

@@ -1,5 +1,3 @@
-import { of } from 'rxjs';
-
 export interface MockType<T> extends Function {
     new(...args: any[]): T;
 }
@@ -16,7 +14,7 @@ export function mockService<T>(serviceType: new (...args: any[]) => T): MockOf<T
     Object.getOwnPropertyNames(serviceType.prototype)
         .filter((key) => key != 'constructor')
         .forEach((key) => {
-            res[key] = jest.fn().mockReturnValue(of());
+            res[key] = jest.fn().mockReturnValue({});
         });
 
     return res;
