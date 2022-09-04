@@ -16,7 +16,7 @@ export abstract class TestSuite<TClass> {
         return this.customProviders.concat(this.mockProviders);
     }
 
-    protected abstract initializeTest(mockMapper: TestMockMapper, declarations: any[], imports: any[], providers: any[]): TClass;
+    protected abstract initializeTest(mockMapper: TestMockMapper, declarations: any[], imports: any[], providers: any[]): Promise<TClass>;
     protected abstract initializeTests(mockMapper: TestMockMapper, declarations: any[], imports: any[], providers: any[]): Promise<void>;
 
     constructor(protected name: string, protected excludeOthers: boolean) { }
@@ -65,12 +65,12 @@ export abstract class TestSuite<TClass> {
 
     beforeEach(callback: (classInstance: TClass, mocks: TestMockMapper) => void): TestSuite<TClass> {
         this.callbacks.push(() => {
-            beforeEach(() => {
+            beforeEach(async () => {
                 if (this.initializedTest) {
                     return callback(this.class, this.mockMapper);
                 }
 
-                this.class = this.initializeTest(this.mockMapper, this.declarations, this.imports, this.providers);
+                this.class = await this.initializeTest(this.mockMapper, this.declarations, this.imports, this.providers);
                 this.initializedTest = true;
 
                 callback(this.class, this.mockMapper);
