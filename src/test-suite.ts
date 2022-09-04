@@ -92,25 +92,24 @@ export abstract class TestSuite<TClass> {
         return this;
     }
 
-    initializeTests(mockMapper: TestMockMapper, declarations: any[], imports: any[], providers: any[]) {
+    initializeTests(mockMapper: TestMockMapper, declarations: any[], imports: any[], providers: any[], callback: Function) {
 
     }
 
     run() {
-        this.initializeTests(this.mockMapper, this.declarations, this.imports, this.providers);
+        this.initializeTests(this.mockMapper, this.declarations, this.imports, this.providers, () => {
+            this.beforeEach(() => {});
 
-        // Call here in case not called externally, to ensure test bed is initialized.
-        this.beforeEach(() => {});
-
-        if (this.excludeOthers) {
-            fdescribe(this.name, () => {
-                this.callbacks.forEach((callback) => callback());
-            });
-        }
-        else {
-            describe(this.name, () => {
-                this.callbacks.forEach((callback) => callback());
-            });
-        }
+            if (this.excludeOthers) {
+                fdescribe(this.name, () => {
+                    this.callbacks.forEach((callback) => callback());
+                });
+            }
+            else {
+                describe(this.name, () => {
+                    this.callbacks.forEach((callback) => callback());
+                });
+            }
+        });
     }
 }
