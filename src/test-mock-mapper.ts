@@ -4,7 +4,7 @@ import { mockService } from './test-mock';
 export class TestMockMapper {
     private mocks = {};
 
-    add(type: any) {
+    add<TMock>(type: MockType<TMock>) {
         this.mocks[type.name] = mockService(type);
     }
 

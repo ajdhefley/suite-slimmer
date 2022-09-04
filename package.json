@@ -8,7 +8,7 @@
     "url": "https://github.com/ajdhefley/slim-suite"
   },
   "homepage": "https://github.com/ajdhefley/slim-suite#readme",
-  "version": "1.1.1",
+  "version": "0.0.1",
   "main": "build/index.js",
   "types": "build/index.d.ts",
   "scripts": {

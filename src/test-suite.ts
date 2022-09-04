@@ -39,7 +39,6 @@ export abstract class TestSuite<TClass> {
     addMocks(...services: any[]): TestSuite<TClass> {
         this.callbacks.push(() => {
             beforeEach(() => {
-                this.mockProviders = [];
                 services.forEach((service) => {
                     this.mockMapper.add(service);
                     this.mockProviders.push({ provide: service, useValue: this.mockMapper.get(service) });
@@ -81,6 +80,9 @@ export abstract class TestSuite<TClass> {
     }
 
     afterEach(callback: (classInstance: TClass, mocks: TestMockMapper) => void): TestSuite<TClass> {
+        this.callbacks.push(() => {
+            afterEach(() => callback(this.class, this.mockMapper));
+        });
 
         return this;
     }
