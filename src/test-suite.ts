@@ -15,6 +15,10 @@ export abstract class TestSuite<TClass> {
     private callbacks = new Array<() => void>();
     private initialized: boolean;
 
+    private get providers() {
+        return this.customProviders.concat(this.mockProviders);
+    }
+
     protected abstract initializeTest(mockMapper: TestMockMapper, declarations: any[], imports: any[], providers: any[], callback: Function);
 
     constructor(protected name: string, protected excludeOthers: boolean) { }
@@ -73,7 +77,7 @@ export abstract class TestSuite<TClass> {
                         callback(classInstance, mocks);
                 };
 
-                beforeEach(async () => await this.initializeTest(this.mockMapper, this.declarations, this.imports, this.customProviders.concat(this.mockProviders), callbackWrapper));
+                beforeEach(async () => await this.initializeTest(this.mockMapper, this.declarations, this.imports, this.providers, callbackWrapper));
             });
         }
 
@@ -88,7 +92,13 @@ export abstract class TestSuite<TClass> {
         return this;
     }
 
+    initializeTests(mockMapper: TestMockMapper, declarations: any[], imports: any[], providers: any[]) {
+
+    }
+
     run() {
+        this.initializeTests(this.mockMapper, this.declarations, this.imports, this.providers);
+
         // Call here in case not called externally, to ensure test bed is initialized.
         this.beforeEach(() => {});
 
