@@ -1,6 +1,6 @@
-# slim-suite
+# suite-slimmer
 
 This package should not be directly installed.
 
-* See [slim-suite-angular](https://www.npmjs.com/package/slim-suite-angular)
-* See [slim-suite-nest](https://www.npmjs.com/package/slim-suite-nest)
+* See [suite-slimmer-angular](https://www.npmjs.com/package/suite-slimmer-angular)
+* See [suite-slimmer-nest](https://www.npmjs.com/package/suite-slimmer-nest)

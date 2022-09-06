@@ -1,4 +1,4 @@
-describe('slim-suite.ts', () => {
+describe('test-suite.ts', () => {
     it('', () => {
         // TODO
     });
