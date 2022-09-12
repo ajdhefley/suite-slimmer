@@ -1,3 +1,4 @@
+import { DependencyMocker } from './dependency-mocker';
 import { TestMockMapper } from './test-mock-mapper';
 
 export abstract class TestSuite<TClass> {
@@ -5,10 +6,11 @@ export abstract class TestSuite<TClass> {
     private imports = new Array<any>();
     private customProviders = new Array<any>();
     private mockProviders = new Array<any>();
-    private mockMapper = new TestMockMapper();
+    private mockMapper: TestMockMapper;
     private class: TClass;
     private initializedTest: boolean;
     private initializedTests: boolean;
+    private disposedTests: boolean;
     
     private callbacks = new Array<() => void>();
 
@@ -18,38 +20,37 @@ export abstract class TestSuite<TClass> {
 
     protected abstract initializeTest(mockMapper: TestMockMapper, declarations: any[], imports: any[], providers: any[]): Promise<TClass>;
     protected abstract initializeTests(mockMapper: TestMockMapper, declarations: any[], imports: any[], providers: any[]): Promise<void>;
+    protected abstract disposeTests(mockMapper: TestMockMapper, declarations: any[], imports: any[], providers: any[]): Promise<void>;
 
-    constructor(protected name: string, protected excludeOthers: boolean) { }
+    constructor(dependencyMocker: DependencyMocker, protected name: string, protected excludeOthers: boolean) {
+        this.mockMapper = new TestMockMapper(dependencyMocker);
+    }
 
-    addDeclarations(...declarations: any[]): TestSuite<TClass> {
+    public addDeclarations(...declarations: any[]) {
         this.declarations.push(...declarations);
         return this;
     }
 
-    addImports(...imports: any[]): TestSuite<TClass> {
+    public addImports(...imports: any[]) {
         this.imports.push(...imports);
         return this;
     }
 
-    addProviders(...providers: any[]): TestSuite<TClass> {
+    public addProviders(...providers: any[]) {
         this.customProviders.push(...providers);
         return this;
     }
 
-    addMocks(...services: any[]): TestSuite<TClass> {
-        this.callbacks.push(() => {
-            beforeEach(() => {
-                services.forEach((service) => {
-                    this.mockMapper.add(service);
-                    this.mockProviders.push({ provide: service, useValue: this.mockMapper.get(service) });
-                });
-            });
+    public addMocks(...services: any[]) {
+        services.forEach((service) => {
+            this.mockMapper.add(service);
+            this.mockProviders.push({ provide: service, useValue: this.mockMapper.get(service) });
         });
 
         return this;
     }
 
-    addTest(description: string, callback: (classInstance: TClass, mocks: TestMockMapper) => void, excludeOthers?: boolean): TestSuite<TClass> {
+    public addTest(description: string, callback: (classInstance: TClass, mocks: TestMockMapper) => void, excludeOthers?: boolean) {
         this.callbacks.push(() => {
             if (excludeOthers) {
                 fit(description, () => callback(this.class, this.mockMapper));
@@ -62,7 +63,7 @@ export abstract class TestSuite<TClass> {
         return this;
     }
 
-    beforeEach(callback: (classInstance: TClass, mocks: TestMockMapper) => void): TestSuite<TClass> {
+    public beforeEach(callback: (classInstance: TClass, mocks: TestMockMapper) => void) {
         this.callbacks.push(() => {
             beforeEach(async () => {
                 if (this.initializedTest) {
@@ -79,7 +80,7 @@ export abstract class TestSuite<TClass> {
         return this;
     }
 
-    afterEach(callback: (classInstance: TClass, mocks: TestMockMapper) => void): TestSuite<TClass> {
+    public afterEach(callback: (classInstance: TClass, mocks: TestMockMapper) => void) {
         this.callbacks.push(() => {
             afterEach(() => callback(this.class, this.mockMapper));
         });
@@ -87,7 +88,7 @@ export abstract class TestSuite<TClass> {
         return this;
     }
 
-    beforeAll(callback: (classInstance: TClass, mocks: TestMockMapper) => void): TestSuite<TClass> {
+    public beforeAll(callback: (classInstance: TClass, mocks: TestMockMapper) => void) {
         this.callbacks.push(() => {
             beforeAll(async () => {
                 if (this.initializedTests) {
@@ -104,17 +105,27 @@ export abstract class TestSuite<TClass> {
         return this;
     }
 
-    afterAll(callback: (classInstance: TClass, mocks: TestMockMapper) => void): TestSuite<TClass> {
+    public afterAll(callback: (classInstance: TClass, mocks: TestMockMapper) => void) {
         this.callbacks.push(() => {
-            afterAll(() => callback(this.class, this.mockMapper));
+            afterAll(async () => {
+                if (this.disposedTests) {
+                    return callback(this.class, this.mockMapper);
+                }
+
+                await this.disposeTests(this.mockMapper, this.declarations, this.imports, this.providers);
+                this.disposedTests = true;
+
+                callback(this.class, this.mockMapper)
+            });
         });
 
         return this;
     }
 
-    run() {
+    public run() {
         this.beforeAll(() => {});
         this.beforeEach(() => {});
+        this.afterAll(() => {});
 
         if (this.excludeOthers) {
             fdescribe(this.name, () => {

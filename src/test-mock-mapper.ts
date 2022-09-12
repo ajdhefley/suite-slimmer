@@ -1,17 +1,25 @@
-import { MockType, MockOf, mockService } from './test-mock';
+import { DependencyMocker } from './dependency-mocker';
+
+export interface MockType<T> extends Function {
+    new(...args: any[]): T;
+}
 
 export class TestMockMapper {
     private mocks = {};
 
-    add<TMock>(type: MockType<TMock>) {
-        this.mocks[type.name] = mockService(type);
+    constructor(private mocker: DependencyMocker) {
+
     }
 
-    addExplicit<TMock>(type: MockType<TMock>, value: any) {
+    public add<TMock>(type: MockType<TMock>) {
+        this.mocks[type.name] = this.mocker.mockService(type);
+    }
+
+    public addExplicit<TMock>(type: MockType<TMock>, value: any) {
         this.mocks[type.name] = value;
     }
 
-    get<TMock>(serviceType: MockType<TMock>): MockOf<TMock> {
+    public get<TMock>(serviceType: MockType<TMock>) {
         return this.mocks[serviceType.name];
     }
 }
