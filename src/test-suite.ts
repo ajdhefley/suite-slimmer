@@ -1,5 +1,6 @@
 import { DependencyMocker } from './dependency-mocker';
 import { TestMockMapper } from './test-mock-mapper';
+import { TestSuiteCallbackCollection } from './test-suite-callback-collection';
 
 export abstract class TestSuite<TClass> {
     private declarations = new Array<any>();
@@ -12,7 +13,7 @@ export abstract class TestSuite<TClass> {
     private initializedTests: boolean;
     private disposedTests: boolean;
     
-    private callbacks = new Array<() => void>();
+    private callbacks = new TestSuiteCallbackCollection();
 
     private get providers() {
         return this.customProviders.concat(this.mockProviders);
@@ -46,12 +47,11 @@ export abstract class TestSuite<TClass> {
             this.mockMapper.add(service);
             this.mockProviders.push({ provide: service, useValue: this.mockMapper.get(service) });
         });
-
         return this;
     }
 
     public addTest(description: string, callback: (classInstance: TClass, mocks: TestMockMapper) => void, excludeOthers?: boolean) {
-        this.callbacks.push(() => {
+        this.callbacks.tests.push(() => {
             if (excludeOthers) {
                 fit(description, () => callback(this.class, this.mockMapper));
             }
@@ -64,8 +64,10 @@ export abstract class TestSuite<TClass> {
     }
 
     public beforeEach(callback: (classInstance: TClass, mocks: TestMockMapper) => void) {
-        this.callbacks.push(() => {
+        this.callbacks.testInitialization = () => {
             beforeEach(async () => {
+                this.mockMapper.reset(); // Reset spy calls, etc. before each test
+
                 if (this.initializedTest) {
                     return callback(this.class, this.mockMapper);
                 }
@@ -75,21 +77,21 @@ export abstract class TestSuite<TClass> {
 
                 callback(this.class, this.mockMapper);
             });
-        });
+        };
 
         return this;
     }
 
     public afterEach(callback: (classInstance: TClass, mocks: TestMockMapper) => void) {
-        this.callbacks.push(() => {
+        this.callbacks.testDisposal = () => {
             afterEach(() => callback(this.class, this.mockMapper));
-        });
+        };
 
         return this;
     }
 
     public beforeAll(callback: (classInstance: TClass, mocks: TestMockMapper) => void) {
-        this.callbacks.push(() => {
+        this.callbacks.suiteInitialization = () => {
             beforeAll(async () => {
                 if (this.initializedTests) {
                     return callback(this.class, this.mockMapper);
@@ -100,13 +102,13 @@ export abstract class TestSuite<TClass> {
 
                 callback(this.class, this.mockMapper);
             });
-        });
+        };
 
         return this;
     }
 
     public afterAll(callback: (classInstance: TClass, mocks: TestMockMapper) => void) {
-        this.callbacks.push(() => {
+        this.callbacks.suiteDisposal = () => {
             afterAll(async () => {
                 if (this.disposedTests) {
                     return callback(this.class, this.mockMapper);
@@ -117,7 +119,7 @@ export abstract class TestSuite<TClass> {
 
                 callback(this.class, this.mockMapper)
             });
-        });
+        };
 
         return this;
     }
@@ -129,13 +131,25 @@ export abstract class TestSuite<TClass> {
 
         if (this.excludeOthers) {
             fdescribe(this.name, () => {
-                this.callbacks.forEach((callback) => callback());
+                this.executeCallbacks();
             });
         }
         else {
             describe(this.name, () => {
-                this.callbacks.forEach((callback) => callback());
+                this.executeCallbacks();
             });
         }
+    }
+
+    private executeCallbacks() {
+        this.callbacks.suiteInitialization();
+        this.callbacks.tests.forEach((testCallback) => {
+            this.callbacks.testInitialization();
+            testCallback();
+            if (this.callbacks.testDisposal)
+                this.callbacks.testDisposal();
+        });
+        if (this.callbacks.suiteDisposal)
+            this.callbacks.suiteDisposal();
     }
 }

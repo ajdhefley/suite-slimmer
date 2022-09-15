@@ -5,7 +5,7 @@ export interface MockType<T> extends Function {
 }
 
 export class TestMockMapper {
-    private mocks = {};
+    private mocks: {[name: string]: any} = {};
 
     constructor(private mocker: DependencyMocker) {
 
@@ -21,5 +21,11 @@ export class TestMockMapper {
 
     public get<TMock>(serviceType: MockType<TMock>) {
         return this.mocks[serviceType.name];
+    }
+
+    public reset() {
+        Object.entries(this.mocks).forEach(([name, mock]) => {
+            this.mocker.reset(mock);
+        });
     }
 }
