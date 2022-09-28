@@ -92,7 +92,9 @@ export abstract class TestSuite<TClass> {
 
     public beforeAll(callback: (classInstance: TClass, mocks: TestMockMapper) => void) {
         this.callbacks.suiteInitialization = () => {
-            beforeAll(async () => {
+            const beforeFunction = typeof beforeAll !== 'undefined' ? beforeAll : before;
+            
+            beforeFunction(async () => {
                 if (this.initializedTests) {
                     return callback(this.class, this.mockMapper);
                 }
@@ -109,7 +111,9 @@ export abstract class TestSuite<TClass> {
 
     public afterAll(callback: (classInstance: TClass, mocks: TestMockMapper) => void) {
         this.callbacks.suiteDisposal = () => {
-            afterAll(async () => {
+            const afterFunction = typeof beforeAll !== 'undefined' ? afterAll : after;
+
+            afterFunction(async () => {
                 if (this.disposedTests) {
                     return callback(this.class, this.mockMapper);
                 }
@@ -130,7 +134,9 @@ export abstract class TestSuite<TClass> {
         this.afterAll(() => {});
 
         if (this.excludeOthers) {
-            fdescribe(this.name, () => {
+            const describeOnlyFunction = typeof fdescribe !== 'undefined' ? fdescribe : describe.only;
+
+            describeOnlyFunction(this.name, () => {
                 this.executeCallbacks();
             });
         }
