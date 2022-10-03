@@ -129,9 +129,14 @@ export abstract class TestSuite<TClass> {
     }
 
     public run() {
-        this.beforeAll(() => {});
-        this.beforeEach(() => {});
-        this.afterAll(() => {});
+        if (!this.callbacks.suiteInitialization)
+            this.beforeAll(() => {});
+            
+        if (!this.callbacks.testInitialization)
+            this.beforeEach(() => {});
+
+        if (!this.callbacks.suiteDisposal)
+            this.afterAll(() => {});
 
         if (this.excludeOthers) {
             const describeOnlyFunction = typeof fdescribe !== 'undefined' ? fdescribe : describe.only;
