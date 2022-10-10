@@ -9,7 +9,6 @@ export abstract class TestSuite<TClass> {
     private mockProviders = new Array<any>();
     private mockMapper: TestMockMapper;
     private class: TClass;
-    private initializedTest: boolean;
     private initializedTests: boolean;
     private disposedTests: boolean;
     
@@ -68,12 +67,7 @@ export abstract class TestSuite<TClass> {
             beforeEach(async () => {
                 this.mockMapper.reset(); // Reset spy calls, etc. before each test
 
-                if (this.initializedTest) {
-                    return callback(this.class, this.mockMapper);
-                }
-
                 this.class = await this.initializeTest(this.mockMapper, this.declarations, this.imports, this.providers);
-                this.initializedTest = true;
 
                 callback(this.class, this.mockMapper);
             });
