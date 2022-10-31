@@ -26,7 +26,6 @@ export abstract class MockManager {
                 else {
                     MockManager.setDependencyMocker(new JasmineMocker());
                 }
-                console.log('using ' + MockManager.getDependencyMocker())
             }
             catch (err) {
                 console.error('suite-slimmer: An unexpected error occurred.');
