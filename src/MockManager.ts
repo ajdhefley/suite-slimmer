@@ -23,9 +23,14 @@ export abstract class MockManager {
                 else if (MockManager.checkDependencyExists('mocha')) {
                     MockManager.setDependencyMocker(new MochaMocker());
                 }
+                else {
+                    MockManager.setDependencyMocker(new JasmineMocker());
+                }
+                console.log('using ' + MockManager.getDependencyMocker())
             }
-            catch {
+            catch (err) {
                 console.error('suite-slimmer: An unexpected error occurred.');
+                console.error(err);
                 process.exit(1);
             }
         }
@@ -34,10 +39,11 @@ export abstract class MockManager {
     }
 
     private static checkDependencyExists(name: string) {
+        if (!execSync) return false;
         const bs = execSync('npm ls --json --depth=0');
         const json = JSON.parse(bs.toString()).dependencies;
         const exists = Object.keys(json).includes(name);
-        return exists
+        return exists;
     }
 
     private constructor() {}

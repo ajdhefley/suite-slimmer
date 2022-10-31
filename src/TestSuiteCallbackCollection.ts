@@ -3,5 +3,5 @@ export class TestSuiteCallbackCollection {
     suiteDisposal: () => void;
     testInitialization: () => void;
     testDisposal: () => void;
-    tests = new Array<() => void>;
+    tests = new Array<() => void>();
 }

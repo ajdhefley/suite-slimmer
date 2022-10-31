@@ -1,4 +1,4 @@
 export * from './DependencyMocker';
-export * from './TestMockMapper';
+export * from './MockMapper';
 export * from './TestSuite';
 export * from './SlimTestSuite';

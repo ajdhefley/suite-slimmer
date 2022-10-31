@@ -1,6 +1,6 @@
 import { DependencyMocker } from './DependencyMocker';
 import { MockManager } from './MockManager';
-import { TestMockMapper } from './TestMockMapper';
+import { MockMapper } from './MockMapper';
 import { TestSuiteCallbackCollection } from './TestSuiteCallbackCollection';
 
 export abstract class TestSuite<TClass> {
@@ -8,7 +8,7 @@ export abstract class TestSuite<TClass> {
     private imports = new Array<any>();
     private customProviders = new Array<any>();
     private mockProviders = new Array<any>();
-    private mockMapper: TestMockMapper;
+    private mockMapper: MockMapper;
     private class: TClass;
     private initializedTests: boolean;
     private disposedTests: boolean;
@@ -19,12 +19,12 @@ export abstract class TestSuite<TClass> {
         return this.customProviders.concat(this.mockProviders);
     }
 
-    protected abstract initializeTest(mockMapper: TestMockMapper, declarations: any[], imports: any[], providers: any[]): Promise<TClass>;
-    protected abstract initializeTests(mockMapper: TestMockMapper, declarations: any[], imports: any[], providers: any[]): Promise<void>;
-    protected abstract disposeTests(mockMapper: TestMockMapper, declarations: any[], imports: any[], providers: any[]): Promise<void>;
+    protected abstract initializeTest(mockMapper: MockMapper, declarations: any[], imports: any[], providers: any[]): Promise<TClass>;
+    protected abstract initializeTests(mockMapper: MockMapper, declarations: any[], imports: any[], providers: any[]): Promise<void>;
+    protected abstract disposeTests(mockMapper: MockMapper, declarations: any[], imports: any[], providers: any[]): Promise<void>;
 
     constructor(protected name: string, protected excludeOthers: boolean) {
-        this.mockMapper = new TestMockMapper(MockManager.getDependencyMocker());
+        this.mockMapper = new MockMapper(MockManager.getDependencyMocker());
     }
 
     public addDeclarations(...declarations: any[]) {
@@ -50,7 +50,7 @@ export abstract class TestSuite<TClass> {
         return this;
     }
 
-    public addTest(description: string, callback: (classInstance: TClass, mocks: TestMockMapper) => void, excludeOthers?: boolean) {
+    public addTest(description: string, callback: (classInstance: TClass, mocks: MockMapper) => void, excludeOthers?: boolean) {
         this.callbacks.tests.push(() => {
             if (excludeOthers) {
                 fit(description, () => callback(this.class, this.mockMapper));
@@ -63,7 +63,7 @@ export abstract class TestSuite<TClass> {
         return this;
     }
 
-    public beforeEach(callback: (classInstance: TClass, mocks: TestMockMapper) => void) {
+    public beforeEach(callback: (classInstance: TClass, mocks: MockMapper) => void) {
         this.callbacks.testInitialization = () => {
             beforeEach(async () => {
                 this.mockMapper.reset(); // Reset spy calls, etc. before each test
@@ -77,7 +77,7 @@ export abstract class TestSuite<TClass> {
         return this;
     }
 
-    public afterEach(callback: (classInstance: TClass, mocks: TestMockMapper) => void) {
+    public afterEach(callback: (classInstance: TClass, mocks: MockMapper) => void) {
         this.callbacks.testDisposal = () => {
             afterEach(() => callback(this.class, this.mockMapper));
         };
@@ -85,7 +85,7 @@ export abstract class TestSuite<TClass> {
         return this;
     }
 
-    public beforeAll(callback: (classInstance: TClass, mocks: TestMockMapper) => void) {
+    public beforeAll(callback: (classInstance: TClass, mocks: MockMapper) => void) {
         this.callbacks.suiteInitialization = () => {
             const beforeFunction = typeof beforeAll !== 'undefined' ? beforeAll : before;
             
@@ -104,7 +104,7 @@ export abstract class TestSuite<TClass> {
         return this;
     }
 
-    public afterAll(callback: (classInstance: TClass, mocks: TestMockMapper) => void) {
+    public afterAll(callback: (classInstance: TClass, mocks: MockMapper) => void) {
         this.callbacks.suiteDisposal = () => {
             const afterFunction = typeof beforeAll !== 'undefined' ? afterAll : after;
 

@@ -1,5 +1,5 @@
 import { DependencyMocker } from './DependencyMocker';
-import { MockType } from './TestMockMapper';
+import { MockType } from './MockMapper';
 
 export type JasmineMockOf<T> = T & {
     [k in keyof T]: jasmine.Spy;

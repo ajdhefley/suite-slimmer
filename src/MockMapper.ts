@@ -4,7 +4,7 @@ export interface MockType<T> extends Function {
     new(...args: any[]): T;
 }
 
-export class TestMockMapper {
+export class MockMapper {
     private mocks: {[name: string]: any} = {};
 
     constructor(private mocker: DependencyMocker) {

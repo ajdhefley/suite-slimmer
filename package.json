@@ -11,6 +11,9 @@
   "version": "1.0.0",
   "main": "build/index.js",
   "types": "build/index.d.ts",
+  "browser": {
+    "child_process": false
+  },
   "scripts": {
     "prepare": "npm run build",
     "build": "tsc"
