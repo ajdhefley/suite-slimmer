@@ -1,6 +1,7 @@
-import { DependencyMocker } from './dependency-mocker';
-import { TestMockMapper } from './test-mock-mapper';
-import { TestSuiteCallbackCollection } from './test-suite-callback-collection';
+import { DependencyMocker } from './DependencyMocker';
+import { MockManager } from './MockManager';
+import { TestMockMapper } from './TestMockMapper';
+import { TestSuiteCallbackCollection } from './TestSuiteCallbackCollection';
 
 export abstract class TestSuite<TClass> {
     private declarations = new Array<any>();
@@ -22,8 +23,8 @@ export abstract class TestSuite<TClass> {
     protected abstract initializeTests(mockMapper: TestMockMapper, declarations: any[], imports: any[], providers: any[]): Promise<void>;
     protected abstract disposeTests(mockMapper: TestMockMapper, declarations: any[], imports: any[], providers: any[]): Promise<void>;
 
-    constructor(dependencyMocker: DependencyMocker, protected name: string, protected excludeOthers: boolean) {
-        this.mockMapper = new TestMockMapper(dependencyMocker);
+    constructor(protected name: string, protected excludeOthers: boolean) {
+        this.mockMapper = new TestMockMapper(MockManager.getDependencyMocker());
     }
 
     public addDeclarations(...declarations: any[]) {
@@ -133,7 +134,7 @@ export abstract class TestSuite<TClass> {
             this.afterAll(() => {});
 
         if (this.excludeOthers) {
-            const describeOnlyFunction = typeof fdescribe !== 'undefined' ? fdescribe : describe.only;
+            const describeOnlyFunction = typeof fdescribe !== 'undefined' ? fdescribe : typeof describe.only !== 'undefined' ? describe.only : describe;
 
             describeOnlyFunction(this.name, () => {
                 this.executeCallbacks();

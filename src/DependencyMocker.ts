@@ -1,4 +1,4 @@
-import { MockType } from './test-mock-mapper';
+import { MockType } from './TestMockMapper';
 
 export abstract class DependencyMocker {
     public abstract mockService<T>(serviceType: new (...args: any[]) => T);

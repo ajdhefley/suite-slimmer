@@ -1,15 +1,17 @@
-# suite-slimmer
+# suite-slimmer &nbsp; ![GitHub Workflow Status](https://img.shields.io/github/workflow/status/dwyl/auth_plug/Elixir%20CI?label=build&style=flat-square) &nbsp; [![Node version](https://img.shields.io/npm/v/suite-slimmer.svg?style=flat)](http://nodejs.org/download/)
 
 Streamlines JavaScript testing.
 
-While this package is mainly intended for use with [Angular](https://github.com/angular/angular) or [NestJS](https://github.com/nestjs/nest) (see below), standalone test suites can be created. 
-
 ## Packages
+
+This is mostly intended for either [Angular](https://github.com/angular/angular) or [NestJS](https://github.com/nestjs/nest) projects, using the following packages:
 
 * See [suite-slimmer-angular](https://www.npmjs.com/package/suite-slimmer-angular)
 * See [suite-slimmer-nest](https://www.npmjs.com/package/suite-slimmer-nest)
 
 ## Usage
+
+Tests can also be written for non-Angular and non-NestJS projects with this package directly.
 
 ### Creating a test
 
@@ -38,3 +40,11 @@ On `SlimTestSuite`, the following methods are available and chainable:
 * beforeAll
 * afterAll
 * run
+
+## Frameworks
+
+The following test frameworks are supported:
+
+* Jasmine
+* Jest
+* Mocha

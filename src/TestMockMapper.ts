@@ -1,4 +1,4 @@
-import { DependencyMocker } from './dependency-mocker';
+import { DependencyMocker } from './DependencyMocker';
 
 export interface MockType<T> extends Function {
     new(...args: any[]): T;

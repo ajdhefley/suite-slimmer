@@ -1,14 +1,14 @@
-import { TestMockMapper } from './test-mock-mapper';
-import { TestSuite } from './test-suite';
+import { TestMockMapper } from './TestMockMapper';
+import { TestSuite } from './TestSuite';
 
 export class SlimTestSuite<T> extends TestSuite<T> {
     constructor(private target: (new(...args: any[]) => T) | string, excludeOthers?: boolean) {
-        super(null, typeof target === 'string' ? target : target.name, excludeOthers);
+        super(typeof target === 'string' ? target : target.name, excludeOthers);
     }
 
     protected initializeTest(mockMapper: TestMockMapper, declarations: any[], imports: any[], providers: any[]): Promise<T> {
         if (typeof this.target === 'string') {
-            return Promise.resolve({} as T)
+            return Promise.resolve(undefined)
         }
         else {
             return Promise.resolve(new this.target(...providers) as T);

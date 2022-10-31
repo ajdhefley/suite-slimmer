@@ -1,6 +1,6 @@
 {
   "name": "suite-slimmer",
-  "description": "Core library for eliminating boilerplate code from tests.",
+  "description": "Streamlines JavaScript testing.",
   "author": "Ashton Hefley",
   "license": "MIT license",
   "repository": {
@@ -16,7 +16,7 @@
     "build": "tsc"
   },
   "devDependencies": {
-    "@types/node": "^16.11.7",
+    "@types/node": "^18.11.8",
     "ts-node": "^10.4.0",
     "tslib": "^2.0.0",
     "typescript": "^4.4.4"

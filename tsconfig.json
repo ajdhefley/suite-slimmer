@@ -6,10 +6,17 @@
       "target": "es2017",
       "module": "commonjs",
       "moduleResolution": "node",
+      "typeRoots": [
+        "./types"
+      ],
+      "types": [
+        "node"
+      ],
       "noImplicitUseStrict": true
     },
     "include": [
-      "./src/**/*.ts"
+      "./src/**/*.ts",
+      "./types/**/*.ts"
     ],
     "exclude": [
         "node_modules"
