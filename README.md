@@ -48,3 +48,7 @@ The following test frameworks are supported:
 * Jasmine
 * Jest
 * Mocha
+
+## Examples
+
+See examples [here](https://github.com/ajdhefley/suite-slimmer-angular/tree/main/examples).
