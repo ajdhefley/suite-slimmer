@@ -1,4 +1,4 @@
-# suite-slimmer &nbsp; ![GitHub Workflow Status](https://img.shields.io/github/workflow/status/dwyl/auth_plug/Elixir%20CI?label=build&style=flat-square) &nbsp; [![Node version](https://img.shields.io/npm/v/suite-slimmer.svg?style=flat)](http://nodejs.org/download/)
+# suite-slimmer &nbsp; ![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/ajdhefley/suite-slimmer/main.yml?branch=main) &nbsp; [![Node version](https://img.shields.io/npm/v/suite-slimmer.svg?style=flat)](http://nodejs.org/download/)
 
 Streamlines JavaScript testing.
 
