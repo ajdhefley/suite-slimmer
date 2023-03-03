@@ -9,6 +9,12 @@ This is mostly intended for either [Angular](https://github.com/angular/angular)
 * See [suite-slimmer-angular](https://www.npmjs.com/package/suite-slimmer-angular)
 * See [suite-slimmer-nest](https://www.npmjs.com/package/suite-slimmer-nest)
 
+## Installation
+
+```bash
+npm install suite-slimmer --save-dev
+```
+
 ## Usage
 
 Tests can also be written for non-Angular and non-NestJS projects with this package directly.
