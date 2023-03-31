@@ -6,6 +6,7 @@ import { TestSuiteCallbackCollection } from './TestSuiteCallbackCollection';
 export abstract class TestSuite<TClass> {
     private declarations = new Array<any>();
     private imports = new Array<any>();
+    private providerCallback: () => any[]
     private customProviders = new Array<any>();
     private mockProviders = new Array<any>();
     private mockMapper: MockMapper;
@@ -38,7 +39,16 @@ export abstract class TestSuite<TClass> {
     }
 
     public addProviders(...providers: any[]) {
+        if (this.providerCallback)
+            throw new Error('Cannot add providers synchronously after adding providers asynchronously.');
         this.customProviders.push(...providers);
+        return this;
+    }
+
+    public addProvidersAsync(providerCallback: () => any[]) {
+        if (this.customProviders.length > 0)
+            throw new Error('Cannot add providers asynchronously after adding providers synchronously.');
+        this.providerCallback = providerCallback;
         return this;
     }
 
@@ -50,73 +60,73 @@ export abstract class TestSuite<TClass> {
         return this;
     }
 
-    public addTest(description: string, callback: (classInstance: TClass, mocks: MockMapper) => void, excludeOthers?: boolean) {
+    public addTest(description: string, callback: (classInstance: TClass, mocks: MockMapper, providers: any[]) => void, excludeOthers?: boolean) {
         this.callbacks.tests.push(() => {
             if (excludeOthers) {
-                fit(description, () => callback(this.class, this.mockMapper));
+                fit(description, () => callback(this.class, this.mockMapper, this.customProviders));
             }
             else {
-                it(description, () => callback(this.class, this.mockMapper));
+                it(description, () => callback(this.class, this.mockMapper, this.customProviders));
             }
         });
 
         return this;
     }
 
-    public beforeEach(callback: (classInstance: TClass, mocks: MockMapper) => void) {
+    public beforeEach(callback: (classInstance: TClass, mocks: MockMapper, providers: any[]) => void) {
         this.callbacks.testInitialization = () => {
             beforeEach(async () => {
                 this.mockMapper.reset(); // Reset spy calls, etc. before each test
 
                 this.class = await this.initializeTest(this.mockMapper, this.declarations, this.imports, this.providers);
 
-                callback(this.class, this.mockMapper);
+                callback(this.class, this.mockMapper, this.customProviders);
             });
         };
 
         return this;
     }
 
-    public afterEach(callback: (classInstance: TClass, mocks: MockMapper) => void) {
+    public afterEach(callback: (classInstance: TClass, mocks: MockMapper, providers: any[]) => void) {
         this.callbacks.testDisposal = () => {
-            afterEach(() => callback(this.class, this.mockMapper));
+            afterEach(() => callback(this.class, this.mockMapper, this.customProviders));
         };
 
         return this;
     }
 
-    public beforeAll(callback: (classInstance: TClass, mocks: MockMapper) => void) {
+    public beforeAll(callback: (classInstance: TClass, mocks: MockMapper, providers: any[]) => void) {
         this.callbacks.suiteInitialization = () => {
             const beforeFunction = typeof beforeAll !== 'undefined' ? beforeAll : before;
             
             beforeFunction(async () => {
                 if (this.initializedTests) {
-                    return callback(this.class, this.mockMapper);
+                    return callback(this.class, this.mockMapper, this.customProviders);
                 }
 
                 await this.initializeTests(this.mockMapper, this.declarations, this.imports, this.providers);
                 this.initializedTests = true;
 
-                callback(this.class, this.mockMapper);
+                callback(this.class, this.mockMapper, this.customProviders);
             });
         };
 
         return this;
     }
 
-    public afterAll(callback: (classInstance: TClass, mocks: MockMapper) => void) {
+    public afterAll(callback: (classInstance: TClass, mocks: MockMapper, providers: any[]) => void) {
         this.callbacks.suiteDisposal = () => {
             const afterFunction = typeof beforeAll !== 'undefined' ? afterAll : after;
 
             afterFunction(async () => {
                 if (this.disposedTests) {
-                    return callback(this.class, this.mockMapper);
+                    return callback(this.class, this.mockMapper, this.customProviders);
                 }
 
                 await this.disposeTests(this.mockMapper, this.declarations, this.imports, this.providers);
                 this.disposedTests = true;
 
-                callback(this.class, this.mockMapper)
+                callback(this.class, this.mockMapper, this.customProviders)
             });
         };
 
@@ -136,20 +146,21 @@ export abstract class TestSuite<TClass> {
         if (this.excludeOthers) {
             const describeOnlyFunction = typeof fdescribe !== 'undefined' ? fdescribe : typeof describe.only !== 'undefined' ? describe.only : describe;
 
-            describeOnlyFunction(this.name, () => {
-                this.executeCallbacks();
+            describeOnlyFunction(this.name, async () => {
+                await this.executeCallbacks();
             });
         }
         else {
-            describe(this.name, () => {
-                this.executeCallbacks();
+            describe(this.name, async () => {
+                await this.executeCallbacks();
             });
         }
     }
 
-    private executeCallbacks() {
+    private async executeCallbacks() {
+        this.class = await this.initializeTest(this.mockMapper, this.declarations, this.imports, this.providers);
         this.callbacks.suiteInitialization();
-        this.callbacks.tests.forEach((testCallback) => {
+        this.callbacks.tests.forEach((testCallback, index) => {
             this.callbacks.testInitialization();
             testCallback();
             if (this.callbacks.testDisposal)
