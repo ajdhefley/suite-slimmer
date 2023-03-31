@@ -6,6 +6,10 @@ export class SlimTestSuite<T> extends TestSuite<T> {
         super(typeof target === 'string' ? target : target.name, excludeOthers);
     }
 
+    protected initializeTests(mockMapper: MockMapper, declarations: any[], imports: any[]): Promise<void> {
+        return Promise.resolve()
+    }
+
     protected initializeTest(mockMapper: MockMapper, declarations: any[], imports: any[], providers: any[]): Promise<T> {
         if (typeof this.target === 'string') {
             return Promise.resolve(undefined)
@@ -13,10 +17,6 @@ export class SlimTestSuite<T> extends TestSuite<T> {
         else {
             return Promise.resolve(new this.target(...providers) as T);
         }
-    }
-
-    protected initializeTests(mockMapper: MockMapper, declarations: any[], imports: any[], providers: any[]): Promise<void> {
-        return Promise.resolve()
     }
 
     protected disposeTests(mockMapper: MockMapper, declarations: any[], imports: any[], providers: any[]): Promise<void> {

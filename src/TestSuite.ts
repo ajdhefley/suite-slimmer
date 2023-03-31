@@ -20,8 +20,8 @@ export abstract class TestSuite<TClass> {
         return this.customProviders.concat(this.mockProviders);
     }
 
+    protected abstract initializeTests(mockMapper: MockMapper, declarations: any[], imports: any[]): Promise<void>;
     protected abstract initializeTest(mockMapper: MockMapper, declarations: any[], imports: any[], providers: any[]): Promise<TClass>;
-    protected abstract initializeTests(mockMapper: MockMapper, declarations: any[], imports: any[], providers: any[]): Promise<void>;
     protected abstract disposeTests(mockMapper: MockMapper, declarations: any[], imports: any[], providers: any[]): Promise<void>;
 
     constructor(protected name: string, protected excludeOthers: boolean) {
@@ -77,6 +77,10 @@ export abstract class TestSuite<TClass> {
         this.callbacks.testInitialization = () => {
             beforeEach(async () => {
                 this.mockMapper.reset(); // Reset spy calls, etc. before each test
+                
+                if (this.providerCallback) {
+                    this.customProviders = this.providerCallback();
+                }
 
                 this.class = await this.initializeTest(this.mockMapper, this.declarations, this.imports, this.providers);
 
@@ -95,19 +99,19 @@ export abstract class TestSuite<TClass> {
         return this;
     }
 
-    public beforeAll(callback: (classInstance: TClass, mocks: MockMapper, providers: any[]) => void) {
+    public beforeAll(callback: (classInstance: TClass, mocks: MockMapper) => void) {
         this.callbacks.suiteInitialization = () => {
             const beforeFunction = typeof beforeAll !== 'undefined' ? beforeAll : before;
             
             beforeFunction(async () => {
                 if (this.initializedTests) {
-                    return callback(this.class, this.mockMapper, this.customProviders);
+                    return callback(this.class, this.mockMapper);
                 }
 
-                await this.initializeTests(this.mockMapper, this.declarations, this.imports, this.providers);
+                await this.initializeTests(this.mockMapper, this.declarations, this.imports);
                 this.initializedTests = true;
 
-                callback(this.class, this.mockMapper, this.customProviders);
+                callback(this.class, this.mockMapper);
             });
         };
 
@@ -134,14 +138,17 @@ export abstract class TestSuite<TClass> {
     }
 
     public run() {
-        if (!this.callbacks.suiteInitialization)
+        if (!this.callbacks.suiteInitialization) {
             this.beforeAll(() => {});
+        }
             
-        if (!this.callbacks.testInitialization)
+        if (!this.callbacks.testInitialization) {
             this.beforeEach(() => {});
+        }
 
-        if (!this.callbacks.suiteDisposal)
+        if (!this.callbacks.suiteDisposal) {
             this.afterAll(() => {});
+        }
 
         if (this.excludeOthers) {
             const describeOnlyFunction = typeof fdescribe !== 'undefined' ? fdescribe : typeof describe.only !== 'undefined' ? describe.only : describe;
@@ -158,9 +165,9 @@ export abstract class TestSuite<TClass> {
     }
 
     private async executeCallbacks() {
-        this.class = await this.initializeTest(this.mockMapper, this.declarations, this.imports, this.providers);
+        await this.initializeTests(this.mockMapper, this.declarations, this.imports);
         this.callbacks.suiteInitialization();
-        this.callbacks.tests.forEach((testCallback, index) => {
+        this.callbacks.tests.forEach(async (testCallback) => {
             this.callbacks.testInitialization();
             testCallback();
             if (this.callbacks.testDisposal)
